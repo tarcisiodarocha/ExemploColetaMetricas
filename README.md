@@ -9,7 +9,7 @@ usando a biblioteca OSHI e serializa o resultado em JSON com Gson.
 
 ## Como construir
 ```bash
-mvn clean package
+mvn compile assembly:single
 ```
 O artefato executável ficará em `target/metrics-collector-1.0.0-jar-with-dependencies.jar`.
 

@@ -8,7 +8,6 @@ import oshi.software.os.FileSystem;
 import oshi.software.os.OSFileStore;
 import oshi.software.os.OperatingSystem;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MetricsApp {
@@ -26,18 +25,23 @@ public class MetricsApp {
         metrics.cpu.logicalProcessorCount = cpu.getLogicalProcessorCount();
         metrics.cpu.physicalPackageCount = cpu.getPhysicalPackageCount();
 
-        double[] load = cpu.getSystemCpuLoadTicks();
-        // Note: CPU load ticks returns cumulative values; for a simple sample we use getSystemCpuLoadBetweenTicks
-        metrics.cpu.systemLoad = cpu.getSystemCpuLoadBetweenTicks() * 100.0;
+        // Nova forma de medir uso de CPU (precisa de duas leituras)
+        long[] prevTicks = cpu.getSystemCpuLoadTicks();
+        try {
+            Thread.sleep(500); // intervalo curto para amostragem
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        metrics.cpu.systemLoad = cpu.getSystemCpuLoadBetweenTicks(prevTicks) * 100.0;
 
-        // Memory
+        // Memória
         GlobalMemory memory = hal.getMemory();
         metrics.memory.total = memory.getTotal();
         metrics.memory.available = memory.getAvailable();
         metrics.memory.used = metrics.memory.total - metrics.memory.available;
 
-        // Disks
-        HWDiskStore[] diskStores = hal.getDiskStores();
+        // Discos
+        List<HWDiskStore> diskStores = hal.getDiskStores();
         for (HWDiskStore ds : diskStores) {
             Metrics.Disk d = new Metrics.Disk();
             d.name = ds.getName();
@@ -48,7 +52,7 @@ public class MetricsApp {
             metrics.disks.add(d);
         }
 
-        // File system (mounts)
+        // File system
         FileSystem fs = os.getFileSystem();
         for (OSFileStore fsStore : fs.getFileStores()) {
             Metrics.Mount m = new Metrics.Mount();
@@ -59,25 +63,25 @@ public class MetricsApp {
             metrics.mounts.add(m);
         }
 
-        // Network interfaces
-        NetworkIF[] nifs = hal.getNetworkIFs();
+        // Interfaces de rede
+        List<NetworkIF> nifs = hal.getNetworkIFs();
         for (NetworkIF nif : nifs) {
             Metrics.NetIf ni = new Metrics.NetIf();
             ni.name = nif.getName();
             ni.displayName = nif.getDisplayName();
             ni.mac = nif.getMacaddr();
+            nif.updateAttributes(); // atualiza contadores RX/TX
             ni.rxBytes = nif.getBytesRecv();
             ni.txBytes = nif.getBytesSent();
             metrics.netIfs.add(ni);
         }
 
-        // Basic OS info
+        // Sistema operacional
         metrics.os.family = os.getFamily();
         metrics.os.version = os.getVersionInfo().getVersion();
         metrics.os.name = os.getVersionInfo().getCodeName();
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json = gson.toJson(metrics);
-        System.out.println(json);
+        System.out.println(gson.toJson(metrics));
     }
 }
