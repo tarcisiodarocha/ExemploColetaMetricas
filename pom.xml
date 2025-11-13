@@ -51,7 +51,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.example.metrics.MetricsApp</mainClass>
+              <mainClass>br.ufs.dcomp.metrics.MetricsApp</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>

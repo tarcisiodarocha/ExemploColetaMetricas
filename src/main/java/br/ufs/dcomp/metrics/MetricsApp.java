@@ -1,4 +1,4 @@
-package com.example.metrics;
+package br.ufs.dcomp.metrics;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -82,6 +82,8 @@ public class MetricsApp {
         metrics.os.name = os.getVersionInfo().getCodeName();
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        System.out.println(gson.toJson(metrics));
+        String json = gson.toJson(metrics);
+        byte[] buf = json.getBytes();
+        System.out.println(json);
     }
 }

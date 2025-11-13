@@ -1,4 +1,4 @@
-package com.example.metrics;
+package br.ufs.dcomp.metrics;
 
 import java.util.ArrayList;
 import java.util.List;
